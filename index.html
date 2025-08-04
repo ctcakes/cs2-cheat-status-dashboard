@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cheat Status Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid rgba(255,255,255,0.3);
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn:hover {
+            background: rgba(255,255,255,0.3);
+            border-color: rgba(255,255,255,0.5);
+            transform: translateY(-2px);
+        }
+
+        .btn.active {
+            background: rgba(255,255,255,0.9);
+            color: #333;
+        }
+
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 1.2rem;
+            margin: 50px 0;
+        }
+
+        .loading i {
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .summary-card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .summary-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .summary-header i {
+            font-size: 1.5rem;
+            margin-right: 10px;
+            color: #667eea;
+        }
+
+        .summary-header h2 {
+            color: #333;
+            font-size: 1.5rem;
+        }
+
+        .cs2-info {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            border-radius: 10px;
+            background: #f8f9fa;
+            border-left: 4px solid #ddd;
+        }
+
+        .status-item.available {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+
+        .status-item.unavailable {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+
+        .status-item.unknown {
+            border-left-color: #ffc107;
+            background: #fff3cd;
+        }
+
+        .status-info {
+            flex: 1;
+        }
+
+        .status-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .status-date {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .status-icon {
+            font-size: 1.5rem;
+            margin-left: 15px;
+        }
+
+        .status-icon.available {
+            color: #28a745;
+        }
+
+        .status-icon.unavailable {
+            color: #dc3545;
+        }
+
+        .status-icon.unknown {
+            color: #ffc107;
+        }
+
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .news-card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .news-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .news-header h3 {
+            color: #333;
+            font-size: 1.3rem;
+            margin-left: 10px;
+        }
+
+        .news-date {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        .news-item {
+            margin-bottom: 15px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+        }
+
+        .news-title {
+            font-weight: 500;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .news-link {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .news-link:hover {
+            text-decoration: underline;
+        }
+
+        .news-link i {
+            margin-left: 5px;
+        }
+
+        .error-message {
+            color: #dc3545;
+            font-style: italic;
+            padding: 15px;
+            background: #f8d7da;
+            border-radius: 8px;
+            border-left: 3px solid #dc3545;
+        }
+
+        .disclaimer {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .controls {
+                gap: 10px;
+            }
+
+            .btn {
+                padding: 10px 20px;
+                font-size: 13px;
+            }
+
+            .news-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .status-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-gamepad"></i> Cheat Status Dashboard</h1>
+            <p>实时监控各大cheat状态和CS2更新信息</p>
+        </div>
+
+        <div class="controls">
+            <button class="btn active" onclick="loadData('summary')">📊 更新总结</button>
+            <button class="btn" onclick="loadData('all')">🔄 全部消息</button>
+            <button class="btn" onclick="loadData('nixware')">Nixware</button>
+            <button class="btn" onclick="loadData('neverlose')">Neverlose</button>
+            <button class="btn" onclick="loadData('fatality')">Fatality</button>
+            <button class="btn" onclick="loadData('memesense')">Memesense</button>
+            <button class="btn" onclick="loadData('cs2')">CS2官方</button>
+            <button class="btn" onclick="refreshData()" style="background: rgba(255,255,255,0.3); border-color: rgba(255,255,255,0.5);">🔄 刷新数据</button>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">
+            <i class="fas fa-spinner"></i>请稍后...
+        </div>
+
+        <div id="content"></div>
+
+        <div class="disclaimer">
+            <i class="fas fa-info-circle"></i>
+            此分析基于更新日期对比，实际可用性可能因其他因素而异，仅供参考
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = './api/index.php';
+        let currentAction = 'summary';
+        let allData = null; // 存储所有数据
+        let summaryData = null; // 存储总结数据
+        let currentAbortController = null; // 用于中断请求
+
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('content').innerHTML = '';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function setActiveButton(action) {
+            document.querySelectorAll('.btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            const buttons = document.querySelectorAll('.btn');
+            const actionMap = {
+                'summary': 0,
+                'all': 1,
+                'nixware': 2,
+                'neverlose': 3,
+                'fatality': 4,
+                'memesense': 5,
+                'cs2': 6
+            };
+            
+            if (actionMap[action] !== undefined) {
+                buttons[actionMap[action]].classList.add('active');
+            }
+        }
+
+        // 初始化时加载所有数据
+        function initializeData() {
+            // 如果有正在进行的请求，先中断它
+            if (currentAbortController) {
+                currentAbortController.abort();
+            }
+            
+            // 创建新的AbortController
+            currentAbortController = new AbortController();
+            const signal = currentAbortController.signal;
+            
+            showLoading();
+            
+            // 并行请求所有数据和总结数据
+            Promise.all([
+                fetch(`${API_BASE}?action=all`, { signal }).then(response => response.json()),
+                fetch(`${API_BASE}?action=summary`, { signal }).then(response => response.json())
+            ])
+            .then(([allResponse, summaryResponse]) => {
+                allData = allResponse;
+                summaryData = summaryResponse;
+                hideLoading();
+                currentAbortController = null; // 请求完成，清除controller
+                
+                // 显示用户当前选择的内容（而不是默认的summary）
+                displayData(currentAction);
+            })
+            .catch(error => {
+                hideLoading();
+                currentAbortController = null; // 请求失败，清除controller
+                
+                // 如果是用户主动中断的请求，不显示错误信息
+                if (error.name === 'AbortError') {
+                    return;
+                }
+                
+                document.getElementById('content').innerHTML = `
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        加载失败: ${error.message}
+                    </div>
+                `;
+            });
+        }
+
+        function loadData(action) {
+            currentAction = action;
+            setActiveButton(action);
+            
+            // 如果数据还没加载完成，显示加载状态
+            // 数据加载完成后会自动显示用户选择的内容
+            if (!allData || !summaryData) {
+                showLoading();
+                return;
+            }
+            
+            displayData(action);
+        }
+
+        function displayData(action) {
+            if (action === 'summary') {
+                renderSummary(summaryData);
+            } else if (action === 'all') {
+                renderAllNews(allData);
+            } else {
+                // 从所有数据中筛选出特定源的数据
+                const singleData = allData.results[action];
+                renderSingleNews(singleData, action);
+            }
+        }
+
+        function renderSummary(data) {
+            if (!data.success) {
+                document.getElementById('content').innerHTML = `
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        ${data.error}
+                    </div>
+                `;
+                return;
+            }
+
+            const summaryHtml = `
+                <div class="summary-card">
+                    <div class="summary-header">
+                        <i class="fas fa-chart-bar"></i>
+                        <h2>更新总结(Cheat状态)</h2>
+                    </div>
+                    
+                    <div class="cs2-info">
+                        <i class="fas fa-gamepad"></i>
+                        CS2最新更新: ${data.cs2_date}
+                    </div>
+                    
+                    <div class="status-grid">
+                        ${data.summary.map(item => `
+                            <div class="status-item ${item.status}">
+                                <div class="status-info">
+                                    <div class="status-name">${item.name}</div>
+                                    <div class="status-date">${item.date || '获取失败'}</div>
+                                    <div class="status-date">
+                                    ${item.status === 'available' ? '可用' : item.status === 'unavailable' ? '不可用' : '未知'}
+
+                                    </div>
+                                    ${item.error ? `<div class="status-date">${item.error}</div>` : ''}
+                                </div>
+                                <div class="status-icon ${item.status}">
+                                    ${getStatusIcon(item.status)}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('content').innerHTML = summaryHtml;
+        }
+
+        function renderAllNews(data) {
+            if (!data.success) {
+                document.getElementById('content').innerHTML = `
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        获取数据失败
+                    </div>
+                `;
+                return;
+            }
+
+            const newsHtml = `
+                <div class="news-grid">
+                    ${Object.entries(data.results).map(([source, result]) => 
+                        renderNewsCard(source, result, true)
+                    ).join('')}
+                </div>
+            `;
+
+            document.getElementById('content').innerHTML = newsHtml;
+        }
+
+        function renderSingleNews(data, source) {
+            const newsHtml = `
+                <div class="news-grid">
+                    ${renderNewsCard(source, data)}
+                </div>
+            `;
+
+            document.getElementById('content').innerHTML = newsHtml;
+        }
+
+        function renderNewsCard(source, data, showLatestOnly = false) {
+            const sourceNames = {
+                'nixware': 'Nixware',
+                'neverlose': 'Neverlose',
+                'fatality': 'Fatality',
+                'memesense': 'Memesense',
+                'plaguecheat': 'Plaguecheat',
+                'cs2': 'CS2官方'
+            };
+
+            const sourceName = sourceNames[source] || source;
+
+            if (!data.success) {
+                return `
+                    <div class="news-card">
+                        <div class="news-header">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <h3>${sourceName}</h3>
+                        </div>
+                        <div class="error-message">
+                            ${data.error}
+                        </div>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="news-card">
+                    <div class="news-header">
+                        <i class="fas fa-newspaper"></i>
+                        <h3>${sourceName}</h3>
+                    </div>
+                    <div class="news-date">
+                        <i class="fas fa-calendar"></i>
+                        上次更新: ${data.latest_date}
+                    </div>
+                    ${(showLatestOnly ? data.news.slice(0, 1) : data.news).map(item => `
+                        <div class="news-item">
+                            <div class="news-title">${item.title}</div>
+                            <a href="${item.link}" target="_blank" class="news-link">
+                                查看详情 <i class="fas fa-external-link-alt"></i>
+                            </a>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function getStatusIcon(status) {
+            switch (status) {
+                case 'available':
+                    return '<i class="fas fa-check-circle"></i>';
+                case 'unavailable':
+                    return '<i class="fas fa-times-circle"></i>';
+                case 'unknown':
+                    return '<i class="fas fa-question-circle"></i>';
+                default:
+                    return '<i class="fas fa-question-circle"></i>';
+            }
+        }
+
+        // 页面加载时初始化所有数据
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeData();
+        });
+        
+        // 添加刷新数据功能
+        function refreshData() {
+            // 如果有正在进行的请求，先中断它
+            if (currentAbortController) {
+                currentAbortController.abort();
+            }
+            
+            allData = null;
+            summaryData = null;
+            initializeData();
+        }
+    </script>
+</body>
+</html>
