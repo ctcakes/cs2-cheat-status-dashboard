@@ -85,7 +85,8 @@ define('REQUEST_TIMEOUT', 60);
 define('USER_AGENT', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
 ?>
 ```
-3. 访问 `index.html` 开始使用
+3. 将src.zip里面的src文件夹解压到网站根目录
+4. 访问网站开始使用
 
 ## 🔧 配置说明
 
